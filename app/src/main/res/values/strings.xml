@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Calculate</string>
+
+    <string-array name="items_class">
+        <item>Cộng không nhớ</item>
+        <item>Cộng tròn chục</item>
+        <item>Cộng tự do</item>
+        <item>Trừ không mượn</item>
+        <item>Trừ tròn chục</item>
+        <item>Trừ tự do</item>
+    </string-array>
+
+</resources>
