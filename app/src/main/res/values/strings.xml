@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Calculate</string>
+    <string name="result_text">Kết quả kiểm tra</string>
 
     <string-array name="items_class">
         <item>Cộng không nhớ</item>

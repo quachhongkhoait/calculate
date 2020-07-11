@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,10 +29,11 @@ public class MainActivity extends AppCompatActivity {
             tvChonDuLieu, tvSo1, tvPheptinh, tvSo2, tvSo3,
             tvCheckFinal, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8,
             tv9, tv0, tvCancel;
-    ImageView tvOk;
+    LinearLayout tvOk;
+    ScrollView scrollView;
     Random generator;
-    int check = 0;
-    int checkspiner = 0;
+    int check = 0, checktemp =0;
+    int checkspiner = 0, spinertemp = 0;
     int result = 0;
     int big = 0;
     int small = 0;
@@ -49,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         tvOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                scrollView.fullScroll(View.FOCUS_DOWN);
                 if (tvSo1.getText().equals("?") || tvSo2.getText().equals("?") || tvSo3.getText().equals("?")
                         || tvSo1.getText().equals("0") || tvSo2.getText().equals("0") || tvSo3.getText().equals("0")) {
                     Toast.makeText(MainActivity.this, "Vui lòng chọn số!", Toast.LENGTH_SHORT).show();
@@ -58,17 +62,21 @@ public class MainActivity extends AppCompatActivity {
                     int so3 = Integer.parseInt(tvSo3.getText().toString());
                     if (tvPheptinh.getText().toString().trim().equals("+")) {
                         if (so1 + so2 == so3) {
-                            Toast.makeText(MainActivity.this, "Cộng chính xác!", Toast.LENGTH_SHORT).show();
+                            tvCheckFinal.setTextColor(getResources().getColor(R.color.green));
+                            tvCheckFinal.setText("Cộng chính xác!");
                             checkspin();
                         } else {
-                            Toast.makeText(MainActivity.this, "Cộng sai rồi!", Toast.LENGTH_SHORT).show();
+                            tvCheckFinal.setTextColor(getResources().getColor(R.color.red));
+                            tvCheckFinal.setText("Cộng sai rồi!");
                         }
                     } else {
                         if (so1 - so2 == so3) {
-                            Toast.makeText(MainActivity.this, "Trừ chính xác!", Toast.LENGTH_SHORT).show();
+                            tvCheckFinal.setTextColor(getResources().getColor(R.color.green));
+                            tvCheckFinal.setText("Trừ chính xác!");
                             checkspin();
                         } else {
-                            Toast.makeText(MainActivity.this, "Trừ sai rồi!", Toast.LENGTH_SHORT).show();
+                            tvCheckFinal.setTextColor(getResources().getColor(R.color.red));
+                            tvCheckFinal.setText("Trừ sai rồi!");
                         }
                     }
                 }
@@ -78,11 +86,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (check == 2) {
-                    String temp = String.valueOf(tvSo2.getText().toString().charAt(0));
-                    tvSo2.setText(temp + "");
+                    if (tvSo2.getText().toString().length() <= 1) {
+                        tvSo2.setText("0");
+                    } else {
+                        String temp = String.valueOf(tvSo2.getText().toString().charAt(0));
+                        tvSo2.setText(temp + "");
+                    }
                 } else if (check == 1) {
-                    String temp = String.valueOf(tvSo1.getText().toString().charAt(0));
-                    tvSo1.setText(temp + "");
+                    if (tvSo1.getText().toString().length() <= 1) {
+                        tvSo1.setText("0");
+                    } else {
+                        String temp = String.valueOf(tvSo1.getText().toString().charAt(0));
+                        tvSo1.setText(temp + "");
+                    }
                 } else {
                     if (tvSo3.getText().toString().length() <= 1) {
                         tvSo3.setText("0");
@@ -410,7 +426,10 @@ public class MainActivity extends AppCompatActivity {
         tvChonDuLieu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("nnn", "onClick: " + check + "  " + checkspiner);
+                checkspiner = spinertemp;
+                check = checktemp;
+                tvCheckFinal.setTextColor(getResources().getColor(R.color.text));
+                tvCheckFinal.setText(getResources().getText(R.string.result_text));
                 if (check == 2) {
                     checkChangeMang();
                     checkspin();
@@ -426,21 +445,21 @@ public class MainActivity extends AppCompatActivity {
         tvDien2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                check = 2;
+                checktemp = 2;
                 checkChangeBackground(2);
             }
         });
         tvDien1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                check = 1;
+                checktemp = 1;
                 checkChangeBackground(1);
             }
         });
         tvTinhToan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                check = 0;
+                checktemp = 0;
                 checkChangeBackground(0);
             }
         });
@@ -504,6 +523,7 @@ public class MainActivity extends AppCompatActivity {
         tv0 = findViewById(R.id.btnso0);
         tvOk = findViewById(R.id.btnOk);
         tvCancel = findViewById(R.id.btnC);
+        scrollView = findViewById(R.id.scrollview);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Drawable drawable = getResources().getDrawable(R.drawable.ic_navigate_before_black_40dp);
@@ -524,7 +544,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
 //                String state = adapterView.getItemAtPosition(i).toString();
-                checkspiner = i;
+                spinertemp = i;
             }
 
             @Override
