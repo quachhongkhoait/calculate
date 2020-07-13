@@ -93,7 +93,13 @@ public class MainActivity extends AppCompatActivity {
                 tvCheckFinal.setTextSize(animatedValue);
             }
         });
-
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                tvOk.setEnabled(true);
+            }
+        });
         animator.start();
     }
 
@@ -119,9 +125,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 scrollView.fullScroll(View.FOCUS_DOWN);
+                tvOk.setEnabled(false);
                 if (tvSo1.getText().equals("?") || tvSo2.getText().equals("?") || tvSo3.getText().equals("?")
                         || tvSo1.getText().equals("0") || tvSo2.getText().equals("0") || tvSo3.getText().equals("0")) {
                     Toast.makeText(MainActivity.this, "Vui lòng chọn số!", Toast.LENGTH_SHORT).show();
+                    tvOk.setEnabled(true);
                 } else {
                     int so1 = Integer.parseInt(tvSo1.getText().toString());
                     int so2 = Integer.parseInt(tvSo2.getText().toString());
@@ -136,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onCompletion(MediaPlayer mediaPlayer) {
                                     checkspin();
+                                    tvOk.setEnabled(true);
                                 }
                             });
                         } else {
