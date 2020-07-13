@@ -3,8 +3,12 @@ package ahihi.khoane.calculate;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -37,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     int result = 0;
     int big = 0;
     int small = 0;
+    MediaPlayer mediaPlayerTrue,mediaPlayerFalse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +51,67 @@ public class MainActivity extends AppCompatActivity {
         onClickChonBai();
         onClickSo();
         tvSo3.setText("?");
+        playTrue();
+        playFalse();
+    }
+
+    private void animationbig(){
+        final float startSize = 25; // Size in pixels
+        final float endSize = 40;
+        long animationDuration = 600; // Animation duration in ms
+        ValueAnimator animator = ValueAnimator.ofFloat(startSize, endSize);
+        animator.setDuration(animationDuration);
+
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float animatedValue = (float) valueAnimator.getAnimatedValue();
+                tvCheckFinal.setTextSize(animatedValue);
+            }
+        });
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                animationsmall();
+            }
+        });
+        animator.start();
+    }
+
+    private void animationsmall(){
+        final float startSize = 40; // Size in pixels
+        final float endSize = 25;
+        long animationDuration = 600; // Animation duration in ms
+        ValueAnimator animator = ValueAnimator.ofFloat(startSize, endSize);
+        animator.setDuration(animationDuration);
+
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float animatedValue = (float) valueAnimator.getAnimatedValue();
+                tvCheckFinal.setTextSize(animatedValue);
+            }
+        });
+
+        animator.start();
+    }
+
+    private void playTrue() {
+        mediaPlayerTrue = MediaPlayer.create(this,R.raw.truesoundeffect);
+    }
+    private void playFalse() {
+        mediaPlayerFalse = MediaPlayer.create(this,R.raw.incorrectsoundeffect);
+    }
+    private void stopPlay() {
+        if (mediaPlayerTrue != null){
+            mediaPlayerTrue.release();
+            mediaPlayerTrue = null;
+        }
+        if (mediaPlayerFalse != null){
+            mediaPlayerFalse.release();
+            mediaPlayerFalse = null;
+        }
     }
 
     private void onClickSo() {
@@ -62,21 +128,39 @@ public class MainActivity extends AppCompatActivity {
                     int so3 = Integer.parseInt(tvSo3.getText().toString());
                     if (tvPheptinh.getText().toString().trim().equals("+")) {
                         if (so1 + so2 == so3) {
+                            mediaPlayerTrue.start();
                             tvCheckFinal.setTextColor(getResources().getColor(R.color.green));
                             tvCheckFinal.setText("Cộng chính xác!");
-                            checkspin();
+                            animationbig();
+                            mediaPlayerTrue.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                @Override
+                                public void onCompletion(MediaPlayer mediaPlayer) {
+                                    checkspin();
+                                }
+                            });
                         } else {
+                            mediaPlayerFalse.start();
                             tvCheckFinal.setTextColor(getResources().getColor(R.color.red));
                             tvCheckFinal.setText("Cộng sai rồi!");
+                            animationbig();
                         }
                     } else {
                         if (so1 - so2 == so3) {
+                            mediaPlayerTrue.start();
                             tvCheckFinal.setTextColor(getResources().getColor(R.color.green));
                             tvCheckFinal.setText("Trừ chính xác!");
-                            checkspin();
+                            animationbig();
+                            mediaPlayerTrue.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                @Override
+                                public void onCompletion(MediaPlayer mediaPlayer) {
+                                    checkspin();
+                                }
+                            });
                         } else {
+                            mediaPlayerFalse.start();
                             tvCheckFinal.setTextColor(getResources().getColor(R.color.red));
                             tvCheckFinal.setText("Trừ sai rồi!");
+                            animationbig();
                         }
                     }
                 }
@@ -288,10 +372,8 @@ public class MainActivity extends AppCompatActivity {
     private void randomKN() {
         result = generator.nextInt(100 - 2) + 2;
         int so1 = generator.nextInt(result - 1) + 1;
-        Log.d("nnn", "randomCKN dauuuu  " + so1 + "  " + result);
         if (result < 10) {
             small = result - so1;
-            Log.d("nnn", "randomCKN 222222  " + so1 + "  " + result);
         } else {
             int tempsonho = 0;
             int rs1 = Integer.parseInt(String.valueOf(String.valueOf(result).charAt(0)));
@@ -307,21 +389,17 @@ public class MainActivity extends AppCompatActivity {
                 if (s2 == 0) {
                     s2 = generator.nextInt(rs2 - 1) + 1;
                     tempsonho = s2;
-                    Log.d("nnn", "randomCKN s2 1 " + s2);
                 } else {
                     if (rs2 < s2) {
                         s2 = generator.nextInt(rs2 - 1) + 1;
                         tempsonho = s2;
-                        Log.d("nnn", "randomCKN s2 2 " + s2);
                     } else {
-                        Log.d("nnn", "randomCKN s1 với s2: " + s1 + "" + s2);
                         tempsonho = Integer.parseInt(s1 + "" + s2);
                     }
                 }
             } else {
                 s1 = generator.nextInt(rs2 - 1) + 1;
                 tempsonho = s1;
-                Log.d("nnn", "randomCKN s2 3 " + s1);
             }
             result = Integer.parseInt(rs1 + "" + rs2);
             if (result - tempsonho < tempsonho) {
