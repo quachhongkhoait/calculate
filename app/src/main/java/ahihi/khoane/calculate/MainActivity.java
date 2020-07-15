@@ -6,10 +6,12 @@ import androidx.appcompat.widget.Toolbar;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,12 +23,15 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.airbnb.lottie.LottieAnimationView;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
+    LottieAnimationView animationView;
     Spinner spinner;
     Toolbar toolbar;
     TextView tvPhamVi, tvTinhToan, tvDien1, tvDien2,
@@ -36,12 +41,14 @@ public class MainActivity extends AppCompatActivity {
     LinearLayout tvOk;
     ScrollView scrollView;
     Random generator;
-    int check = 0, checktemp =0;
+    int check = 0;
     int checkspiner = 0, spinertemp = 0;
     int result = 0;
     int big = 0;
     int small = 0;
-    MediaPlayer mediaPlayerTrue,mediaPlayerFalse;
+    MediaPlayer mediaPlayerTrue,mediaPlayerFalse,click;
+    List<Integer> soundListTrue;
+    List<Integer> soundListFalse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +58,49 @@ public class MainActivity extends AppCompatActivity {
         onClickChonBai();
         onClickSo();
         tvSo3.setText("?");
-        playTrue();
-        playFalse();
+        soundListTrue = new ArrayList<Integer>();
+//        mediaPlayerTrue = MediaPlayer.create(this,R.raw.truesoundeffect);
+        soundListTrue.add(R.raw.truesoundeffect);
+        soundListTrue.add(R.raw.begioiqua);
+        soundListTrue.add(R.raw.dung);
+        soundListTrue.add(R.raw.tuyetvoi);
+        soundListTrue.add(R.raw.dungroibeoi);
+
+        soundListFalse = new ArrayList<Integer>();
+//        mediaPlayerTrue = MediaPlayer.create(this,R.raw.truesoundeffect);
+        soundListFalse.add(R.raw.tiecquasai);
+        soundListFalse.add(R.raw.oitiecqualainaobeoi);
+        soundListFalse.add(R.raw.incorrectsoundeffect);
+        soundListFalse.add(R.raw.sairoilamlainaobeoi);
+    }
+
+    private void playClick() {
+        mediaPlayerTrue = MediaPlayer.create(this, R.raw.click);
+        mediaPlayerTrue.start();
+    }
+
+    private void playTrue() {
+        int randomInt = (new Random().nextInt(soundListTrue.size()));
+        int sound = soundListTrue.get(randomInt);
+        mediaPlayerTrue = MediaPlayer.create(this, sound);
+        mediaPlayerTrue.start();
+    }
+
+    private void playFalse() {
+        int randomInt = (new Random().nextInt(soundListFalse.size()));
+        int sound = soundListFalse.get(randomInt);
+        mediaPlayerFalse = MediaPlayer.create(this, sound);
+        mediaPlayerFalse.start();
+    }
+    private void stopPlay() {
+        if (mediaPlayerTrue != null){
+            mediaPlayerTrue.release();
+            mediaPlayerTrue = null;
+        }
+        if (mediaPlayerFalse != null){
+            mediaPlayerFalse.release();
+            mediaPlayerFalse = null;
+        }
     }
 
     private void animationbig(){
@@ -78,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
         });
         animator.start();
     }
-
     private void animationsmall(){
         final float startSize = 40; // Size in pixels
         final float endSize = 25;
@@ -103,23 +150,6 @@ public class MainActivity extends AppCompatActivity {
         animator.start();
     }
 
-    private void playTrue() {
-        mediaPlayerTrue = MediaPlayer.create(this,R.raw.truesoundeffect);
-    }
-    private void playFalse() {
-        mediaPlayerFalse = MediaPlayer.create(this,R.raw.incorrectsoundeffect);
-    }
-    private void stopPlay() {
-        if (mediaPlayerTrue != null){
-            mediaPlayerTrue.release();
-            mediaPlayerTrue = null;
-        }
-        if (mediaPlayerFalse != null){
-            mediaPlayerFalse.release();
-            mediaPlayerFalse = null;
-        }
-    }
-
     private void onClickSo() {
         tvOk.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -136,7 +166,11 @@ public class MainActivity extends AppCompatActivity {
                     int so3 = Integer.parseInt(tvSo3.getText().toString());
                     if (tvPheptinh.getText().toString().trim().equals("+")) {
                         if (so1 + so2 == so3) {
-                            mediaPlayerTrue.start();
+                            tvOk.setEnabled(false);
+                            playTrue();
+//                            animationView.setAnimation(R.raw.okdone);
+//                            animationView.setVisibility(View.VISIBLE);
+//                            mediaPlayerTrue.start();
                             tvCheckFinal.setTextColor(getResources().getColor(R.color.green));
                             tvCheckFinal.setText("Cộng chính xác!");
                             animationbig();
@@ -144,18 +178,37 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onCompletion(MediaPlayer mediaPlayer) {
                                     checkspin();
-                                    tvOk.setEnabled(true);
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            tvOk.setEnabled(true);
+                                            tvCheckFinal.setText("Cộng chính xác!");
+                                            animationView.setVisibility(View.GONE);
+                                        }
+                                    },1000);
                                 }
                             });
                         } else {
-                            mediaPlayerFalse.start();
+                            playFalse();
                             tvCheckFinal.setTextColor(getResources().getColor(R.color.red));
                             tvCheckFinal.setText("Cộng sai rồi!");
                             animationbig();
+                            mediaPlayerFalse.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                @Override
+                                public void onCompletion(MediaPlayer mediaPlayer) {
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            tvOk.setEnabled(true);
+                                            animationView.setVisibility(View.GONE);
+                                        }
+                                    },1000);
+                                }
+                            });
                         }
                     } else {
                         if (so1 - so2 == so3) {
-                            mediaPlayerTrue.start();
+                            playTrue();
                             tvCheckFinal.setTextColor(getResources().getColor(R.color.green));
                             tvCheckFinal.setText("Trừ chính xác!");
                             animationbig();
@@ -163,13 +216,32 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onCompletion(MediaPlayer mediaPlayer) {
                                     checkspin();
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            tvOk.setEnabled(true);
+                                            animationView.setVisibility(View.GONE);
+                                        }
+                                    },1000);
                                 }
                             });
                         } else {
-                            mediaPlayerFalse.start();
+                            playFalse();
                             tvCheckFinal.setTextColor(getResources().getColor(R.color.red));
                             tvCheckFinal.setText("Trừ sai rồi!");
                             animationbig();
+                            mediaPlayerFalse.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                @Override
+                                public void onCompletion(MediaPlayer mediaPlayer) {
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            tvOk.setEnabled(true);
+                                            animationView.setVisibility(View.GONE);
+                                        }
+                                    },1000);
+                                }
+                            });
                         }
                     }
                 }
@@ -178,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
         tvCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     if (tvSo2.getText().toString().length() <= 1) {
                         tvSo2.setText("0");
@@ -205,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
         tv1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 1);
                 } else if (check == 1) {
@@ -217,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
         tv2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 2);
                 } else if (check == 1) {
@@ -229,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
         tv3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 3);
                 } else if (check == 1) {
@@ -241,6 +317,7 @@ public class MainActivity extends AppCompatActivity {
         tv4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 4);
                 } else if (check == 1) {
@@ -253,6 +330,7 @@ public class MainActivity extends AppCompatActivity {
         tv5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 5);
                 } else if (check == 1) {
@@ -265,6 +343,7 @@ public class MainActivity extends AppCompatActivity {
         tv6.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 6);
                 } else if (check == 1) {
@@ -277,6 +356,7 @@ public class MainActivity extends AppCompatActivity {
         tv7.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 7);
                 } else if (check == 1) {
@@ -289,6 +369,7 @@ public class MainActivity extends AppCompatActivity {
         tv8.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 8);
                 } else if (check == 1) {
@@ -301,6 +382,7 @@ public class MainActivity extends AppCompatActivity {
         tv9.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 9);
                 } else if (check == 1) {
@@ -313,6 +395,7 @@ public class MainActivity extends AppCompatActivity {
         tv0.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                playClick();
                 if (check == 2) {
                     check2so(tvSo2, 0);
                 } else if (check == 1) {
@@ -438,24 +521,40 @@ public class MainActivity extends AppCompatActivity {
         int i = check;
         if (i == 2) {
             tvSo1.setBackgroundResource(0);
-//            tvSo1.setText("" + big);
+            tvSo1.setTextColor(getResources().getColor(R.color.orin));
+            tvSo1.setText("0");
+
             tvSo2.setBackgroundResource(R.drawable.btn_number1_ok);
+            tvSo2.setTextColor(getResources().getColor(R.color.text));
             tvSo2.setText("?");
+
             tvSo3.setBackgroundResource(0);
-//            tvSo3.setText("" + result);
+            tvSo3.setTextColor(getResources().getColor(R.color.orin));
+            tvSo3.setText("0");
         } else if (i == 1) {
             tvSo1.setBackgroundResource(R.drawable.btn_number1_ok);
+            tvSo1.setTextColor(getResources().getColor(R.color.text));
             tvSo1.setText("?");
+
             tvSo2.setBackgroundResource(0);
-//            tvSo2.setText("" + small);
+            tvSo2.setTextColor(getResources().getColor(R.color.orin));
+            tvSo2.setText("0");
+
             tvSo3.setBackgroundResource(0);
-//            tvSo3.setText("" + result);
+            tvSo3.setTextColor(getResources().getColor(R.color.orin));
+            tvSo3.setTextColor(getResources().getColor(R.color.orin));
+            tvSo3.setText("0");
         } else {
             tvSo1.setBackgroundResource(0);
-//            tvSo1.setText("" + big);
+            tvSo1.setTextColor(getResources().getColor(R.color.orin));
+            tvSo1.setText("0");
+
             tvSo2.setBackgroundResource(0);
-//            tvSo2.setText("" + small);
+            tvSo2.setTextColor(getResources().getColor(R.color.orin));
+            tvSo2.setText("0");
+
             tvSo3.setBackgroundResource(R.drawable.btn_number1_ok);
+            tvSo3.setTextColor(getResources().getColor(R.color.text));
             tvSo3.setText("?");
         }
     }
@@ -514,7 +613,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 checkspiner = spinertemp;
-                check = checktemp;
                 tvCheckFinal.setTextColor(getResources().getColor(R.color.text));
                 tvCheckFinal.setText(getResources().getText(R.string.result_text));
                 if (check == 2) {
@@ -532,22 +630,25 @@ public class MainActivity extends AppCompatActivity {
         tvDien2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                checktemp = 2;
+                check = 2;
                 checkChangeBackground(2);
+                checkChangeMang();
             }
         });
         tvDien1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                checktemp = 1;
+                check = 1;
                 checkChangeBackground(1);
+                checkChangeMang();
             }
         });
         tvTinhToan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                checktemp = 0;
+                check = 0;
                 checkChangeBackground(0);
+                checkChangeMang();
             }
         });
     }
@@ -557,36 +658,38 @@ public class MainActivity extends AppCompatActivity {
             tvDien2.setBackgroundResource(R.drawable.box_purple_custom_right);
             tvDien2.setTextColor(Color.parseColor("#ffffff"));
 
-            tvDien1.setBackgroundColor(Color.parseColor("#ffffff"));
-            tvDien1.setTextColor(Color.parseColor("#AC71FB"));
+            tvDien1.setBackgroundColor(getResources().getColor(R.color.text));
+            tvDien1.setTextColor(getResources().getColor(R.color.blue));
 
             tvTinhToan.setBackgroundResource(R.drawable.box_while_custom_left);
-            tvTinhToan.setTextColor(Color.parseColor("#AC71FB"));
+            tvTinhToan.setTextColor(getResources().getColor(R.color.blue));
         } else if (1 == a) {
             tvDien2.setBackgroundResource(R.drawable.box_while_custom_right);
-            tvDien2.setTextColor(Color.parseColor("#AC71FB"));
+            tvDien2.setTextColor(getResources().getColor(R.color.blue));
 
-            tvDien1.setBackgroundColor(Color.parseColor("#AC71FB"));
-            tvDien1.setTextColor(Color.parseColor("#ffffff"));
+            tvDien1.setBackgroundColor(getResources().getColor(R.color.blue));
+            tvDien1.setTextColor(getResources().getColor(R.color.text));
 
             tvTinhToan.setBackgroundResource(R.drawable.box_while_custom_left);
-            tvTinhToan.setTextColor(Color.parseColor("#AC71FB"));
+            tvTinhToan.setTextColor(getResources().getColor(R.color.blue));
 
         } else {
 
             tvDien2.setBackgroundResource(R.drawable.box_while_custom_right);
-            tvDien2.setTextColor(Color.parseColor("#AC71FB"));
+            tvDien2.setTextColor(getResources().getColor(R.color.blue));
 
-            tvDien1.setBackgroundColor(Color.parseColor("#ffffff"));
-            tvDien1.setTextColor(Color.parseColor("#AC71FB"));
+            tvDien1.setBackgroundColor(getResources().getColor(R.color.text));
+            tvDien1.setTextColor(getResources().getColor(R.color.blue));
 
             tvTinhToan.setBackgroundResource(R.drawable.box_purple_custom_left);
-            tvTinhToan.setTextColor(Color.parseColor("#ffffff"));
+            tvTinhToan.setTextColor(getResources().getColor(R.color.text));
 
         }
     }
 
     private void initWidget() {
+        animationView = findViewById(R.id.animation_view);
+        animationView.setVisibility(View.GONE);
         spinner = findViewById(R.id.spinerPhepTinh);
         tvPhamVi = findViewById(R.id.tvPhamVi);
         tvTinhToan = findViewById(R.id.tvcbTinhToan);
@@ -613,9 +716,10 @@ public class MainActivity extends AppCompatActivity {
         scrollView = findViewById(R.id.scrollview);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Drawable drawable = getResources().getDrawable(R.drawable.ic_navigate_before_black_40dp);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeAsUpIndicator(drawable);
+//        Drawable drawable = getResources().getDrawable(R.drawable.ic_navigate_before_black_40dp);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+//        getSupportActionBar().setHomeAsUpIndicator(drawable);
         generator = new Random();
         List<String> categories = new ArrayList<String>();
         categories.add("Cộng không nhớ");
@@ -632,6 +736,12 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
 //                String state = adapterView.getItemAtPosition(i).toString();
                 spinertemp = i;
+                if(i<=2){
+                    tvPheptinh.setText("+");
+                } else {
+                    tvPheptinh.setText("-");
+                }
+                checkChangeMang();
             }
 
             @Override
